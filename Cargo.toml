@@ -1,0 +1,4 @@
+[package]
+name = "bitgraph"
+version = "0.1.0"
+authors = ["Peter Elmers <peter.elmers@yahoo.com>"]
