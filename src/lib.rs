@@ -1,5 +1,5 @@
 #![feature(collections)]
-use std::collections::{BitVec, BitSet, VecDeque};
+use std::collections::{BitVec, BitSet, VecDeque, HashMap};
 
 pub mod graph;
 
@@ -50,6 +50,10 @@ pub trait BitGraph
     /// Return copy of self with all disconnected vertices removed and return a vector v where
     /// v[i_old]=i_new, a mapping from old indices to new indices.
     fn compressed(&self) -> (Self, Vec<usize>);
+    /// Serialize the graph to DOT GraphViz format.
+    fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,
+                            edge_attrs: Option<&HashMap<(usize, usize), HashMap<String, String>>>)
+        -> String;
 }
 
 pub fn bfs<G,F>(g: &G, start: usize, visitor: Option<F>) -> Vec<i32>

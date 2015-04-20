@@ -1,6 +1,6 @@
 use std::io;
 use std::io::{BufRead, Read};
-use std::collections::BitVec;
+use std::collections::{BitVec, HashMap, BitSet};
 use BitGraph;
 
 pub type Graph = Vec<BitVec>;
@@ -73,6 +73,30 @@ impl BitGraph for Graph {
             }
         }
     }
+    fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,
+                            edge_attrs: Option<&HashMap<(usize, usize), HashMap<String, String>>>)
+        -> String
+    {
+        let mut out_lines = vec![format!("node [fontname=\"{}\",fontsize=\"{}\"]",
+                                            "sans-serif", "12")];
+        for (i,_) in self.iter().enumerate() {
+            let mut n_props = vec![format!("id={}", i)];
+            if let Some(attrs) = node_attrs {
+                n_props.push_all(&attrs[&i].iter().map(|(k,v)| format!("{}=\"{}\"", k,
+                                                                        v)).collect::<Vec<_>>());
+            }
+            out_lines.push(format!("{} [{}]", i, n_props.connect(",")));
+            for j in BitSet::from_bit_vec(self.out_neighbors(i)).iter() {
+                let mut e_props = vec![format!("id={},{}", i,j)];
+                if let Some(attrs) = edge_attrs {
+                    e_props.push_all(&attrs[&(i,j)].iter().map(|(k,v)| format!("{}=\"{}\"", k,
+                                                                                v)).collect::<Vec<_>>());
+                }
+                out_lines.push(format!("{} -> {} [{}]", i, j, n_props.connect(",")));
+            }
+        }
+        format!("graph Graph {{{}}}", out_lines.connect("\n"))
+    }
 }
 
 pub fn read_csv<R: Read>(reader: &mut io::BufReader<R>) -> Option<Graph> {
@@ -82,8 +106,9 @@ pub fn read_csv<R: Read>(reader: &mut io::BufReader<R>) -> Option<Graph> {
         // turn each row into iterator of ints
         |r| r.unwrap_or(String::new()).split(",").map(
             // parse each number into int and collect into vectors
-            |s| s.parse().unwrap_or(0)).map(|v| v == 1)
+            |s| s.trim().parse().unwrap_or(0)).map(|v| v == 1)
         .collect::<BitVec>()).collect::<Vec<_>>();
+    println!("{:?}", a);
     if a.verify() {
         Some(a)
     } else {

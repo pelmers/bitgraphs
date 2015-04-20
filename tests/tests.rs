@@ -1,3 +1,4 @@
-#[test]
-fn it_works() {
-}
+extern crate bitgraphs;
+
+mod test_csv;
+
