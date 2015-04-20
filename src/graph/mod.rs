@@ -31,11 +31,11 @@ impl BitGraph for Graph {
     fn neighbors(&self, id: usize) -> BitVec {
         self[id].clone()
     }
-    fn in_neighbors(&self, id: usize) -> BitVec {
-        self.neighbors(id)
+    fn in_neighbors(&self, id: usize) -> &BitVec {
+        &self[id]
     }
-    fn out_neighbors(&self, id: usize) -> BitVec {
-        self.neighbors(id)
+    fn out_neighbors(&self, id: usize) -> &BitVec {
+        &self[id]
     }
     fn induce(&mut self, vertices: BitVec) {
         for (i, r) in self.iter_mut().enumerate() {
@@ -86,16 +86,16 @@ impl BitGraph for Graph {
                                                                         v)).collect::<Vec<_>>());
             }
             out_lines.push(format!("{} [{}]", i, n_props.connect(",")));
-            for j in BitSet::from_bit_vec(self.out_neighbors(i)).iter() {
+            for j in BitSet::from_bit_vec(self.out_neighbors(i).clone()).iter().filter(|&j| i<=j) {
                 let mut e_props = vec![format!("id={},{}", i,j)];
                 if let Some(attrs) = edge_attrs {
                     e_props.push_all(&attrs[&(i,j)].iter().map(|(k,v)| format!("{}=\"{}\"", k,
                                                                                 v)).collect::<Vec<_>>());
                 }
-                out_lines.push(format!("{} -> {} [{}]", i, j, n_props.connect(",")));
+                out_lines.push(format!("{} -- {} [{}]", i, j, e_props.connect(",")));
             }
         }
-        format!("graph Graph {{{}}}", out_lines.connect("\n"))
+        format!("strict graph {{\n{}\n}}", out_lines.connect("\n"))
     }
 }
 
@@ -108,7 +108,6 @@ pub fn read_csv<R: Read>(reader: &mut io::BufReader<R>) -> Option<Graph> {
             // parse each number into int and collect into vectors
             |s| s.trim().parse().unwrap_or(0)).map(|v| v == 1)
         .collect::<BitVec>()).collect::<Vec<_>>();
-    println!("{:?}", a);
     if a.verify() {
         Some(a)
     } else {
