@@ -8,6 +8,13 @@ pub fn sum(vec: &BitVec) -> usize {
     vec.iter().filter(|v| *v).count()
 }
 
+pub fn dot(a: &BitVec, b: &BitVec) -> usize {
+    //! Return dot product of a and b.
+    let mut comp = a.clone();
+    comp.intersect(b);
+    sum(&comp)
+}
+
 pub trait BitGraph
     where Self: Clone {
     /// Verify that this graph is valid.
@@ -50,7 +57,8 @@ pub trait BitGraph
     /// Return copy of self with all disconnected vertices removed and return a vector v where
     /// v[i_old]=i_new, a mapping from old indices to new indices.
     fn compressed(&self) -> (Self, Vec<usize>);
-    /// Serialize the graph to DOT GraphViz format.
+    /// Serialize the graph to DOT GraphViz format, where optional attribute maps contain valid
+    /// GraphViz properties.
     fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,
                             edge_attrs: Option<&HashMap<(usize, usize), HashMap<String, String>>>)
         -> String;
