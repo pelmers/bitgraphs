@@ -73,6 +73,15 @@ impl BitGraph for Graph {
             }
         }
     }
+    fn rearranged(&self, perm: &Vec<usize>) -> Self {
+        // construct inverse map of perm for fast lookup
+        let mut inverse = vec![0; self.len()];
+        for (i,&p) in perm.iter().enumerate() {
+            inverse[p] = i;
+        }
+        (0..self.len()).map(|v| BitVec::from_fn(self.len(), |w|
+                                                self[inverse[v]][inverse[w]])).collect()
+    }
     fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,
                             edge_attrs: Option<&HashMap<(usize, usize), HashMap<String, String>>>)
         -> String

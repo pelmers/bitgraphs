@@ -46,6 +46,10 @@ pub trait BitGraph
     /// Return copy of self with all disconnected vertices removed and return a vector v where
     /// v[i_old]=i_new, a mapping from old indices to new indices.
     fn compressed(&self) -> (Self, Vec<usize>);
+    /// Give each node v in self the id perm[v] and return a new graph.
+    /// perm must be a bijection.
+    /// Similar to multiplying the adjacency representation by a pivot matrix.
+    fn rearranged(&self, perm: &Vec<usize>) -> Self;
     /// Serialize the graph to DOT GraphViz format, where optional attribute maps contain valid
     /// GraphViz properties.
     fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,
