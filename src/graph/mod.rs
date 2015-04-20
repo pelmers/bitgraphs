@@ -87,7 +87,7 @@ impl BitGraph for Graph {
             }
             out_lines.push(format!("{} [{}]", i, n_props.connect(",")));
             for j in BitSet::from_bit_vec(self.out_neighbors(i).clone()).iter().filter(|&j| i<=j) {
-                let mut e_props = vec![format!("id={},{}", i,j)];
+                let mut e_props = vec![format!("id=\"{},{}\"", i,j)];
                 if let Some(attrs) = edge_attrs {
                     e_props.push_all(&attrs[&(i,j)].iter().map(|(k,v)| format!("{}=\"{}\"", k,
                                                                                 v)).collect::<Vec<_>>());
