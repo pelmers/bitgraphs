@@ -12,17 +12,17 @@ pub trait BitGraph
     fn len(&self) -> usize;
     /// Add edge from fr to to.
     fn add_edge(&mut self, fr: usize, to: usize);
-    /// Add edges from fr to each true index in toset, |toset| = |V|.
-    fn add_edges(&mut self, fr: usize, toset: BitVec) {
-        for (i, _) in toset.iter().enumerate().filter(|&(_,b)| b) {
+    /// Add edges from fr to each element in tovec.
+    fn add_edges(&mut self, fr: usize, tovec: Vec<usize>) {
+        for &i in tovec.iter() {
             self.add_edge(fr, i);
         }
     }
     /// Remove edge from fr to to.
     fn remove_edge(&mut self, fr: usize, to: usize);
     /// Remove edges from fr to each true index in toset, |toset| = |V|.
-    fn remove_edges(&mut self, fr: usize, toset: BitVec) {
-        for (i, _) in toset.iter().enumerate().filter(|&(_,b)| b) {
+    fn remove_edges(&mut self, fr: usize, tovec: Vec<usize>) {
+        for &i in tovec.iter() {
             self.remove_edge(fr, i);
         }
     }
@@ -35,6 +35,10 @@ pub trait BitGraph
         let mut i = self.in_neighbors(id).clone();
         i.union(self.out_neighbors(id));
         i
+    }
+    /// Test existence of an edge.
+    fn has_edge(&self, from: usize, to: usize) -> bool {
+        self.out_neighbors(from)[to]
     }
     /// Induce subgraph of given vertices. Does not change size of graph, but disconnects vertices
     /// not set in given set.
@@ -49,7 +53,16 @@ pub trait BitGraph
     /// Give each node v in self the id perm[v] and return a new graph.
     /// perm must be a bijection.
     /// Similar to multiplying the adjacency representation by a pivot matrix.
-    fn rearranged(&self, perm: &Vec<usize>) -> Self;
+    fn rearranged(&self, perm: &Vec<usize>) -> Self {
+        let mut inverse = vec![0; self.len()];
+        for (i,&p) in perm.iter().enumerate() {
+            inverse[p] = i;
+        }
+        self.reordered(&inverse)
+    }
+    /// Rearrange self in the given order, where order[i] = v means vertex v is sent to vertex i.
+    /// Order must have length self.len(). Equivalent to rearranged(inv(order)).
+    fn reordered(&self, order: &Vec<usize>) -> Self;
     /// Serialize the graph to DOT GraphViz format, where optional attribute maps contain valid
     /// GraphViz properties.
     fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,

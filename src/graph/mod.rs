@@ -10,6 +10,11 @@ pub fn new(size: usize) -> Graph {
     vec![BitVec::from_elem(size, false); size]
 }
 
+pub fn complete(n: usize) -> Graph {
+    //! Construct K_n.
+    (0..n).map(|i| BitVec::from_fn(n, |j| i != j)).collect()
+}
+
 impl BitGraph for Graph {
     fn verify(&self) -> bool {
         //! Make sure matrix is symmetric.
@@ -73,14 +78,9 @@ impl BitGraph for Graph {
             }
         }
     }
-    fn rearranged(&self, perm: &Vec<usize>) -> Self {
-        // construct inverse map of perm for fast lookup
-        let mut inverse = vec![0; self.len()];
-        for (i,&p) in perm.iter().enumerate() {
-            inverse[p] = i;
-        }
+    fn reordered(&self, order: &Vec<usize>) -> Self {
         (0..self.len()).map(|v| BitVec::from_fn(self.len(), |w|
-                                                self[inverse[v]][inverse[w]])).collect()
+                                                self[order[v]][order[w]])).collect()
     }
     fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,
                             edge_attrs: Option<&HashMap<(usize, usize), HashMap<String, String>>>)
