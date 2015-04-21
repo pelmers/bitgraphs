@@ -13,8 +13,8 @@ pub fn dot(a: &BitVec, b: &BitVec) -> usize {
     sum(&comp)
 }
 
-pub fn bfs<G,F>(g: &G, start: usize, visitor: Option<F>) -> Vec<i32>
-    where G:BitGraph, F:Fn(usize) {
+pub fn bfs<G,F>(g: &G, start: usize, visitor: &mut Option<F>) -> Vec<i32>
+    where G:BitGraph, F:FnMut(usize) {
     //! Perform breadth-first search on graph from given start.
     //! Call optional visitor at each vertex visited in BFS order.
     //! Return mapping of id->depth, -1 for unreached vertices.
@@ -24,10 +24,9 @@ pub fn bfs<G,F>(g: &G, start: usize, visitor: Option<F>) -> Vec<i32>
     dists[start] = 0;
     while !q.is_empty() {
         let v = q.pop_front().unwrap();
-        match visitor {
-            Some(ref f) => f(v),
-            _ => ()
-        };
+        if let &mut Some(ref mut f) = visitor {
+            f(v);
+        }
         for n in BitSet::from_bit_vec(g.out_neighbors(v).clone()).iter() {
             dists[n] = dists[v] + 1;
             q.push_back(n);
@@ -36,8 +35,8 @@ pub fn bfs<G,F>(g: &G, start: usize, visitor: Option<F>) -> Vec<i32>
     dists
 }
 
-pub fn dfs<G,F>(g: &G, start: usize, visitor: Option<F>) -> Vec<i32>
-    where G:BitGraph, F:Fn(usize) {
+pub fn dfs<G,F>(g: &G, start: usize, visitor: &mut Option<F>) -> Vec<i32>
+    where G:BitGraph, F:FnMut(usize) {
     //! Perform depth-first search on graph from given start.
     //! Call optional visitor at each vertex visited in DFS order.
     //! Return mapping of id->visit time, -1 for unreached vertices.
@@ -47,10 +46,9 @@ pub fn dfs<G,F>(g: &G, start: usize, visitor: Option<F>) -> Vec<i32>
     while !stack.is_empty() {
         let v = stack.pop().unwrap();
         order[v] = iter;
-        match visitor {
-            Some(ref f) => f(v),
-            _ => ()
-        };
+        if let &mut Some(ref mut f) = visitor {
+            f(v);
+        }
         stack.append(&mut BitSet::from_bit_vec(
                 g.out_neighbors(v).clone()).iter().collect());
         iter += 1;
