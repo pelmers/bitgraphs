@@ -20,14 +20,20 @@ pub fn bfs<G,F>(g: &G, start: usize, visitor: &mut Option<F>) -> Vec<i32>
     //! Return mapping of id->depth, -1 for unreached vertices.
     let mut dists = vec![-1; g.len()];
     let mut q = VecDeque::with_capacity(g.len());
+    let mut visited = BitSet::with_capacity(g.len());
     q.push_back(start);
     dists[start] = 0;
     while !q.is_empty() {
         let v = q.pop_front().unwrap();
+        if visited.contains(&v) {
+            continue;
+        }
+        visited.insert(v);
         if let &mut Some(ref mut f) = visitor {
             f(v);
         }
-        for n in BitSet::from_bit_vec(g.out_neighbors(v).clone()).iter() {
+        for n in BitSet::from_bit_vec(g.out_neighbors(v).clone())
+                    .iter().filter(|v| !visited.contains(v)) {
             dists[n] = dists[v] + 1;
             q.push_back(n);
         }
@@ -43,14 +49,19 @@ pub fn dfs<G,F>(g: &G, start: usize, visitor: &mut Option<F>) -> Vec<i32>
     let mut order = vec![-1; g.len()];
     let mut stack = vec![start];
     let mut iter = 0;
+    let mut visited = BitSet::with_capacity(g.len());
     while !stack.is_empty() {
         let v = stack.pop().unwrap();
+        if order[v] != -1 {
+            continue;
+        }
         order[v] = iter;
+        visited.insert(v);
         if let &mut Some(ref mut f) = visitor {
             f(v);
         }
-        stack.append(&mut BitSet::from_bit_vec(
-                g.out_neighbors(v).clone()).iter().collect());
+        stack.append(&mut BitSet::from_bit_vec(g.out_neighbors(v).clone())
+                     .iter().filter(|&v| order[v] == -1).collect());
         iter += 1;
     }
     order
