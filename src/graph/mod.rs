@@ -123,3 +123,8 @@ pub fn read_csv<R: Read>(reader: &mut io::BufReader<R>) -> Option<Graph> {
         None
     }
 }
+
+pub fn complete(n: usize) -> Graph {
+    //! Construct K_n.
+    (0..n).map(|i| BitVec::from_fn(n, |j| i != j)).collect()
+}
