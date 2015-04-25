@@ -42,7 +42,16 @@ impl BitGraph for Graph {
     fn out_neighbors(&self, id: usize) -> &BitVec {
         &self[id]
     }
-    fn induce(&mut self, vertices: BitVec) {
+    fn complement(&self) -> Graph {
+        // negate each row and zero the diagonal
+        let mut new_graph = self.clone();
+        for (i,r) in new_graph.iter_mut().enumerate() {
+            r.negate();
+            r.set(i, false);
+        }
+        new_graph
+    }
+    fn induce(&mut self, vertices: &BitVec) {
         for (i, r) in self.iter_mut().enumerate() {
             if vertices[i] {
                 r.intersect(&vertices);
@@ -116,7 +125,7 @@ pub fn read_csv<R: Read>(reader: &mut io::BufReader<R>) -> Option<Graph> {
         |r| r.unwrap_or(String::new()).split(",").map(
             // parse each number into int and collect into vectors
             |s| s.trim().parse().unwrap_or(0)).map(|v| v == 1)
-        .collect::<BitVec>()).collect::<Vec<_>>();
+        .collect()).collect::<Vec<_>>();
     if a.verify() {
         Some(a)
     } else {

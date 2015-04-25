@@ -2,6 +2,7 @@
 use std::collections::{BitVec, HashMap};
 
 pub mod graph;
+pub mod digraph;
 pub mod utils;
 
 pub trait BitGraph
@@ -40,9 +41,11 @@ pub trait BitGraph
     fn has_edge(&self, from: usize, to: usize) -> bool {
         self.out_neighbors(from)[to]
     }
+    /// Return complement of the graph.
+    fn complement(&self) -> Self;
     /// Induce subgraph of given vertices. Does not change size of graph, but disconnects vertices
     /// not set in given set.
-    fn induce(&mut self, vertices: BitVec);
+    fn induce(&mut self, vertices: &BitVec);
     /// Contract the given edge e = (u->v). Size of self does not change, but all edges incident to
     /// v become incident to u instead, and v is disconnected from the graph. e must be an edge in
     /// the graph.
