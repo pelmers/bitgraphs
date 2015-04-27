@@ -62,12 +62,8 @@ impl BitGraph for DiGraph {
         (&mut self.to as &mut Graph).induce(vertices);
     }
     fn compressed(&self) -> (DiGraph, Vec<usize>) {
-        let map = (0..self.len()).rev().scan(0, |num_empty, idx| {
-            if self.from[idx].none() && self.to[idx].none() {
-                *num_empty += 1;
-            }
-            Some(idx-*num_empty)
-        }).collect();
+        let map = (0..self.len()).filter(|&idx| self.from[idx].any() ||
+                                         self.to[idx].any()).collect();
 
         let (new_fr, new_to) = self.from.iter().zip(self.to.iter())
             .filter(|&(f,t)| f.any() || t.any())
@@ -100,7 +96,7 @@ impl BitGraph for DiGraph {
         self.from[v].set_all();
         self.from[v].negate();
     }
-    fn reordered(&self, order: &Vec<usize>) -> Self {
+    fn reordered(&self, order: &[usize]) -> Self {
         DiGraph {
             from: (&self.from as &Graph).reordered(order),
             to: (&self.to as &Graph).reordered(order)

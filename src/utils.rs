@@ -13,27 +13,29 @@ pub fn dot(a: &BitVec, b: &BitVec) -> usize {
     sum(&comp)
 }
 
-pub fn bfs<G,F>(g: &G, start: usize, visitor: &mut F) -> Vec<i32>
-    where G:BitGraph, F:FnMut(usize) {
+pub fn bfs<G,F>(g: &G, start: usize, visitor: &mut F) -> (Vec<i32>, Vec<usize>)
+    where G:BitGraph, F:FnMut(usize, &[i32], &[usize]) {
     //! Perform breadth-first search on graph from given start.
-    //! Call optional visitor at each vertex visited in BFS order.
-    //! Return mapping of id->depth, -1 for unreached vertices.
+    //! Call visitor at each vertex visited in BFS order with parents and distances.
+    //! Return (mapping of id->depth, -1 for unreached vertices, id->parent id)
     let mut dists = vec![-1; g.len()];
     let mut q = VecDeque::with_capacity(g.len());
     let mut visited = BitSet::with_capacity(g.len());
+    let mut parents = vec![0; g.len()];
     q.push_back(start);
     visited.insert(start);
     dists[start] = 0;
     while !q.is_empty() {
         let v = q.pop_front().unwrap();
-        visitor(v);
         for n in BitSet::from_bit_vec(g.out_neighbors(v).clone())
                     .iter().filter(|&v| visited.insert(v)) {
             dists[n] = dists[v] + 1;
+            parents[n] = v;
             q.push_back(n);
         }
+        visitor(v, &dists, &parents);
     }
-    dists
+    (dists, parents)
 }
 
 pub fn dfs<G,F>(g: &G, start: usize, visitor: &mut F) -> Vec<i32>
@@ -49,10 +51,10 @@ pub fn dfs<G,F>(g: &G, start: usize, visitor: &mut F) -> Vec<i32>
     while !stack.is_empty() {
         let v = stack.pop().unwrap();
         order[v] = iter;
-        visitor(v);
         stack.append(&mut BitSet::from_bit_vec(g.out_neighbors(v).clone())
                         .iter().filter(|&v| visited.insert(v)).collect());
         iter += 1;
+        visitor(v);
     }
     order
 }

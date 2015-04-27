@@ -5,3 +5,5 @@ authors = ["Peter Elmers <peter.elmers@yahoo.com>"]
 
 [[test]]
 name = "tests"
+
+[dependencies.rand]

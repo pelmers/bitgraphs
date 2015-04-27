@@ -1,4 +1,5 @@
 #![feature(collections)]
+extern crate rand;
 use std::collections::{BitVec, HashMap};
 
 pub mod graph;
@@ -14,7 +15,7 @@ pub trait BitGraph
     /// Add edge from fr to to.
     fn add_edge(&mut self, fr: usize, to: usize);
     /// Add edges from fr to each element in tovec.
-    fn add_edges(&mut self, fr: usize, tovec: Vec<usize>) {
+    fn add_edges(&mut self, fr: usize, tovec: &[usize]) {
         for &i in tovec.iter() {
             self.add_edge(fr, i);
         }
@@ -22,7 +23,7 @@ pub trait BitGraph
     /// Remove edge from fr to to.
     fn remove_edge(&mut self, fr: usize, to: usize);
     /// Remove edges from fr to each true index in toset, |toset| = |V|.
-    fn remove_edges(&mut self, fr: usize, tovec: Vec<usize>) {
+    fn remove_edges(&mut self, fr: usize, tovec: &[usize]) {
         for &i in tovec.iter() {
             self.remove_edge(fr, i);
         }
@@ -51,12 +52,12 @@ pub trait BitGraph
     /// the graph.
     fn contract(&mut self, e: (usize, usize));
     /// Return copy of self with all disconnected vertices removed and return a vector v where
-    /// v[i_old]=i_new, a mapping from old indices to new indices.
+    /// v[i_new]=i_old, a mapping from new indices to old indices.
     fn compressed(&self) -> (Self, Vec<usize>);
     /// Give each node v in self the id perm[v] and return a new graph.
     /// perm must be a bijection.
     /// Similar to multiplying the adjacency representation by a pivot matrix.
-    fn rearranged(&self, perm: &Vec<usize>) -> Self {
+    fn rearranged(&self, perm: &[usize]) -> Self {
         let mut inverse = vec![0; self.len()];
         for (i,&p) in perm.iter().enumerate() {
             inverse[p] = i;
@@ -65,7 +66,7 @@ pub trait BitGraph
     }
     /// Rearrange self in the given order, where order[i] = v means vertex v is sent to vertex i.
     /// Order must have length self.len(). Equivalent to rearranged(inv(order)).
-    fn reordered(&self, order: &Vec<usize>) -> Self;
+    fn reordered(&self, order: &[usize]) -> Self;
     /// Serialize the graph to DOT GraphViz format, where optional attribute maps contain valid
     /// GraphViz properties.
     fn serialize_dot(&self, node_attrs: Option<&HashMap<usize, HashMap<String, String>>>,

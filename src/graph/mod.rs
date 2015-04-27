@@ -1,6 +1,9 @@
+extern crate rand;
+
 use std::io;
 use std::io::{BufRead, Read};
 use std::collections::{BitVec, HashMap, BitSet};
+use rand::random;
 use BitGraph;
 
 pub type Graph = Vec<BitVec>;
@@ -13,6 +16,20 @@ pub fn new(size: usize) -> Graph {
 pub fn complete(n: usize) -> Graph {
     //! Construct K_n.
     (0..n).map(|i| BitVec::from_fn(n, |j| i != j)).collect()
+}
+
+pub fn erdos_renyi(n: usize, p: f64) -> Graph {
+    //! Construct Erdos-Renyi random undirected graph on n vertices, p in range [0,1].
+    let mut g = new(n);
+    for i in (0..n) {
+        for j in (i+1..n) {
+            if random::<f64>() < p {
+                g.add_edge(i,j);
+            }
+        }
+    }
+    assert!(g.verify());
+    g
 }
 
 impl BitGraph for Graph {
@@ -62,13 +79,8 @@ impl BitGraph for Graph {
         }
     }
     fn compressed(&self) -> (Graph, Vec<usize>) {
-        // construct mapping of old indices -> new indices
-        let map = (0..self.len()).rev().scan(0, |num_empty, idx| {
-            if self[idx].none() {
-                *num_empty += 1;
-            }
-            Some(idx-*num_empty)
-        }).collect();
+        // construct mapping of new indices -> old indices
+        let map = (0..self.len()).filter(|&idx| self[idx].any()).collect();
         let mut new_graph = self.clone();
         // retain all connected vertices
         new_graph.retain(BitVec::any);
@@ -87,7 +99,7 @@ impl BitGraph for Graph {
             }
         }
     }
-    fn reordered(&self, order: &Vec<usize>) -> Self {
+    fn reordered(&self, order: &[usize]) -> Self {
         (0..self.len()).map(|v| BitVec::from_fn(self.len(), |w|
                                                 self[order[v]][order[w]])).collect()
     }
